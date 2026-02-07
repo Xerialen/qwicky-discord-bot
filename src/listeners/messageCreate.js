@@ -3,6 +3,50 @@ const { extractUrls } = require('../utils/parseUrl');
 const { getChannelRegistration, insertSubmission } = require('../services/supabase');
 const { fetchGameData } = require('../services/hubApi');
 
+// Clean QuakeWorld high-bit character encoding for display
+function cleanQWName(name) {
+  if (typeof name !== 'string') return String(name || '');
+  const lookup = { 0:"=",2:"=",5:".",10:" ",14:".",15:".",16:"[",17:"]",18:"0",19:"1",20:"2",21:"3",22:"4",23:"5",24:"6",25:"7",26:"8",27:"9",28:".",29:"=",30:"=",31:"=" };
+  return name.split('').map(ch => {
+    const c = ch.charCodeAt(0);
+    const n = c >= 128 ? c - 128 : c;
+    if (n < 32) return lookup[n] || '';
+    return String.fromCharCode(n);
+  }).join('').trim();
+}
+
+// Calculate team frags from game data (handles all formats)
+function getTeamScores(gameData) {
+  const rawTeams = gameData.teams || [];
+  const t1Raw = rawTeams[0];
+  const t2Raw = rawTeams[1];
+
+  // Hub row format: teams are objects with .name and .frags
+  if (typeof t1Raw === 'object' && t1Raw !== null) {
+    return { t1Name: t1Raw.name || '?', t2Name: t2Raw?.name || '?', t1Score: t1Raw.frags ?? '?', t2Score: t2Raw?.frags ?? '?' };
+  }
+
+  // ktxstats format: teams are strings, scores from team_stats or players
+  const t1Name = cleanQWName(t1Raw || '');
+  const t2Name = cleanQWName(t2Raw || '');
+
+  if (gameData.team_stats) {
+    return { t1Name, t2Name, t1Score: gameData.team_stats[t1Raw]?.frags ?? '?', t2Score: gameData.team_stats[t2Raw]?.frags ?? '?' };
+  }
+
+  if (gameData.players && Array.isArray(gameData.players)) {
+    let t1Score = 0, t2Score = 0;
+    gameData.players.forEach(p => {
+      const frags = p.stats?.frags ?? p.frags ?? 0;
+      if (p.team === t1Raw) t1Score += frags;
+      else if (p.team === t2Raw) t2Score += frags;
+    });
+    return { t1Name, t2Name, t1Score, t2Score };
+  }
+
+  return { t1Name: t1Name || '?', t2Name: t2Name || '?', t1Score: '?', t2Score: '?' };
+}
+
 async function handleMessage(message) {
   // Ignore bots
   if (message.author.bot) return;
@@ -44,14 +88,9 @@ async function handleMessage(message) {
       }
 
       // Build confirmation embed for this map
-      // ktxstats format: teams are strings, scores in team_stats
-      const teams = gameData.teams || [];
+      const { t1Name, t2Name, t1Score, t2Score } = getTeamScores(gameData);
       const map = gameData.map || 'unknown';
       const mode = gameData.mode || '';
-      const t1Name = typeof teams[0] === 'object' ? teams[0]?.name : teams[0] || 'Team 1';
-      const t2Name = typeof teams[1] === 'object' ? teams[1]?.name : teams[1] || 'Team 2';
-      const t1Score = gameData.team_stats?.[t1Name]?.frags ?? '?';
-      const t2Score = gameData.team_stats?.[t2Name]?.frags ?? '?';
 
       embeds.push(new EmbedBuilder()
         .setColor(0xFFB300)
