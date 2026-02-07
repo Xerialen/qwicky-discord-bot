@@ -29,11 +29,15 @@ client.on('interactionCreate', async interaction => {
     await command.execute(interaction);
   } catch (err) {
     console.error(`Error executing /${interaction.commandName}:`, err);
-    const reply = { content: 'Something went wrong.', ephemeral: true };
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(reply);
-    } else {
-      await interaction.reply(reply);
+    try {
+      const reply = { content: 'Something went wrong.', ephemeral: true };
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply);
+      } else {
+        await interaction.reply(reply);
+      }
+    } catch (replyErr) {
+      console.error('Failed to send error reply:', replyErr.message);
     }
   }
 });
@@ -41,7 +45,12 @@ client.on('interactionCreate', async interaction => {
 // Handle messages (hub URL detection)
 client.on('messageCreate', handleMessage);
 
-client.once('ready', () => {
+// Prevent unhandled errors from crashing the bot
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err);
+});
+
+client.once('clientReady', () => {
   console.log(`QWICKY Bot online as ${client.user.tag}`);
 });
 
