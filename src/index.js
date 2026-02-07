@@ -41,7 +41,7 @@ client.on('interactionCreate', async interaction => {
 // Handle messages (hub URL detection)
 client.on('messageCreate', handleMessage);
 
-client.once('clientReady', () => {
+client.once('ready', () => {
   console.log(`QWICKY Bot online as ${client.user.tag}`);
 });
 
