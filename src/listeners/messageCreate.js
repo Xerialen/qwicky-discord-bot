@@ -44,15 +44,14 @@ async function handleMessage(message) {
       }
 
       // Build confirmation embed for this map
+      // ktxstats format: teams are strings, scores in team_stats
       const teams = gameData.teams || [];
       const map = gameData.map || 'unknown';
       const mode = gameData.mode || '';
-      const team1 = teams[0] || {};
-      const team2 = teams[1] || {};
-      const t1Name = team1.name || 'Team 1';
-      const t2Name = team2.name || 'Team 2';
-      const t1Score = team1.frags ?? '?';
-      const t2Score = team2.frags ?? '?';
+      const t1Name = typeof teams[0] === 'object' ? teams[0]?.name : teams[0] || 'Team 1';
+      const t2Name = typeof teams[1] === 'object' ? teams[1]?.name : teams[1] || 'Team 2';
+      const t1Score = gameData.team_stats?.[t1Name]?.frags ?? '?';
+      const t2Score = gameData.team_stats?.[t2Name]?.frags ?? '?';
 
       embeds.push(new EmbedBuilder()
         .setColor(0xFFB300)
