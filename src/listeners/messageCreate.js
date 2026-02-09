@@ -53,10 +53,12 @@ async function handleMessage(message) {
 
   // Extract hub URLs from the message
   const urls = extractUrls(message.content);
+  console.log(`[MessageCreate] Extracted ${urls.length} URLs from message in channel ${message.channelId}`);
   if (urls.length === 0) return;
 
   // Check if this channel is registered
   const reg = await getChannelRegistration(message.channelId);
+  console.log(`[MessageCreate] Channel registration:`, reg ? 'FOUND' : 'NOT FOUND');
   if (!reg) return;
 
   const embeds = [];
@@ -116,7 +118,11 @@ async function handleMessage(message) {
     embeds[embeds.length - 1].setFooter({
       text: `${embeds.length} map(s) submitted | Pending review in QWICKY | Tournament: ${reg.tournament_id}`
     });
+    console.log(`[MessageCreate] Sending ${embeds.length} embed(s) as reply`);
     await message.reply({ embeds });
+    console.log(`[MessageCreate] Reply sent successfully`);
+  } else {
+    console.log(`[MessageCreate] No embeds to send`);
   }
 }
 
