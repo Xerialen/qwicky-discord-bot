@@ -1,0 +1,14 @@
+app = 'qwicky-discord-bot'
+primary_region = 'iad'
+
+[build]
+
+[env]
+  NODE_ENV = 'production'
+
+[processes]
+  app = 'npm start'
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '256mb'
