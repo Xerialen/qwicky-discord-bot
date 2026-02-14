@@ -48,9 +48,6 @@ function getTeamScores(gameData) {
 }
 
 async function handleMessage(message) {
-  // Ignore bots
-  if (message.author.bot) return;
-
   // Extract hub URLs from the message
   const urls = extractUrls(message.content);
   console.log(`[MessageCreate] Extracted ${urls.length} URLs from message in channel ${message.channelId}`);
