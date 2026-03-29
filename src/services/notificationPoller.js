@@ -1,10 +1,11 @@
 const { claimNotifications, completeNotification, failNotification } = require('./supabase');
 const { handleEditSubmission } = require('./handlers/editSubmission');
+const { handlePostSchedule } = require('./handlers/postSchedule');
 
 // Handler registry — extend as new notification types are added
 const handlers = {
   'edit_submission': handleEditSubmission,
-  // Phase 2: 'post_schedule': handlePostSchedule,
+  'post_schedule': handlePostSchedule,
   // Phase 3: 'game_day_reminder': handleGameDayReminder,
   //          'unscheduled_alert': handleUnscheduledAlert,
   //          'admin_alert': handleAdminAlert,
