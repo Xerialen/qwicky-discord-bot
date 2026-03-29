@@ -8,6 +8,7 @@ const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
 const { startNotificationPoller } = require('./services/notificationPoller');
 const { generateDailyNotifications, cleanupOldNotifications } = require('./services/dailyReminders');
+const { checkAndRunDiscovery } = require('./services/discoveryScheduler');
 const { handleButtonInteraction } = require('./services/buttonHandler');
 const { supabase } = require('./services/supabase');
 
@@ -215,6 +216,28 @@ client.once('clientReady', () => {
       console.log('[DailyReminders] Daily notifications complete.');
     } catch (err) {
       console.error('[DailyReminders] Unexpected error:', err);
+    }
+  }, 60 * 1000); // Check every 60 seconds
+
+  // Discovery scheduler — runs at 22:00 UTC based on per-tournament settings
+  let lastDiscoveryDate = null;
+
+  setInterval(async () => {
+    const now = new Date();
+    const hour = now.getUTCHours();
+    const minute = now.getUTCMinutes();
+    const today = now.toISOString().split('T')[0];
+
+    if (hour !== 22 || minute !== 0) return;
+    if (lastDiscoveryDate === today) return;
+    lastDiscoveryDate = today;
+
+    console.log('[DiscoveryScheduler] Checking for scheduled discovery runs...');
+    try {
+      await checkAndRunDiscovery();
+      console.log('[DiscoveryScheduler] Discovery check complete.');
+    } catch (err) {
+      console.error('[DiscoveryScheduler] Unexpected error:', err);
     }
   }, 60 * 1000); // Check every 60 seconds
 });
