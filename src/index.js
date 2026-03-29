@@ -5,6 +5,7 @@ const path = require('path');
 const { handleMessage } = require('./listeners/messageCreate');
 const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
+const { startNotificationPoller } = require('./services/notificationPoller');
 const { supabase } = require('./services/supabase');
 
 const client = new Client({
@@ -106,6 +107,9 @@ client.once('clientReady', () => {
   // Start health check server (Railway requires an HTTP server)
   const PORT = process.env.PORT || 3000;
   startHealthServer(client, PORT);
+
+  // Start notification queue poller (processes outbound Discord messages)
+  startNotificationPoller(client, 30000);
 
   // Weekly activity report scheduler — runs every Monday at 10:00 UTC
   let lastReportDate = null;

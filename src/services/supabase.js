@@ -66,10 +66,55 @@ async function insertSubmission({ tournamentId, divisionId, hubUrl, gameId, game
   return data;
 }
 
+async function updateSubmissionMessageId(submissionId, messageId) {
+  const { error } = await supabase
+    .from('match_submissions')
+    .update({ discord_message_id: messageId })
+    .eq('id', submissionId);
+  if (error) console.error(`[Supabase] Failed to store message ID for ${submissionId}:`, error.message);
+}
+
+async function getSubmissionById(submissionId) {
+  const { data, error } = await supabase
+    .from('match_submissions')
+    .select('*')
+    .eq('id', submissionId)
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
+async function claimNotifications(batchSize = 10) {
+  const { data, error } = await supabase.rpc('claim_notifications', { batch_size: batchSize });
+  if (error) throw error;
+  return data || [];
+}
+
+async function completeNotification(id) {
+  const { error } = await supabase
+    .from('discord_notifications')
+    .update({ status: 'completed', processed_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) console.error(`[Supabase] Failed to complete notification ${id}:`, error.message);
+}
+
+async function failNotification(id, errorMsg) {
+  const { error } = await supabase
+    .from('discord_notifications')
+    .update({ status: 'failed', error: errorMsg })
+    .eq('id', id);
+  if (error) console.error(`[Supabase] Failed to mark notification ${id} as failed:`, error.message);
+}
+
 module.exports = {
   supabase,
   getChannelRegistration,
   registerChannel,
   unregisterChannel,
   insertSubmission,
+  updateSubmissionMessageId,
+  getSubmissionById,
+  claimNotifications,
+  completeNotification,
+  failNotification,
 };

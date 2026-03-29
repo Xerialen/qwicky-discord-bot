@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
 const { extractUrls } = require('../utils/parseUrl');
-const { getChannelRegistration, insertSubmission } = require('../services/supabase');
+const { getChannelRegistration, insertSubmission, updateSubmissionMessageId } = require('../services/supabase');
 const { fetchGameData } = require('../services/hubApi');
 const { cleanName } = require('../utils/nameNormalizer');
 
@@ -65,6 +65,7 @@ async function handleMessage(message) {
   if (!reg) return;
 
   const embeds = [];
+  const successfulSubmissionIds = [];
 
   for (const { url, gameId } of urls) {
     try {
@@ -82,6 +83,10 @@ async function handleMessage(message) {
         discordUserName: message.author.displayName || message.author.username,
         channelId: message.channelId,
       });
+
+      if (!result.duplicate) {
+        successfulSubmissionIds.push(result.id);
+      }
 
       if (result.duplicate) {
         embeds.push(new EmbedBuilder()
@@ -142,8 +147,13 @@ async function handleMessage(message) {
       text: `${embeds.length} map(s) submitted | Tournament: ${reg.tournament_id}${AUTO_APPROVE_URL ? ' | Auto-approve enabled' : ' | Pending review in QWICKY'}`
     });
     console.log(`[MessageCreate] Sending ${embeds.length} embed(s) as reply`);
-    await message.reply({ embeds });
-    console.log(`[MessageCreate] Reply sent successfully`);
+    const replyMsg = await message.reply({ embeds });
+
+    // Store the Discord message ID on each submission so we can edit embeds later
+    for (const subId of successfulSubmissionIds) {
+      await updateSubmissionMessageId(subId, replyMsg.id);
+    }
+    console.log(`[MessageCreate] Reply sent successfully (messageId: ${replyMsg.id}, linked to ${successfulSubmissionIds.length} submission(s))`);
   } else {
     console.log(`[MessageCreate] No embeds to send`);
   }
