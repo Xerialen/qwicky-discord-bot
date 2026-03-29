@@ -7,6 +7,7 @@ const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
 const { startNotificationPoller } = require('./services/notificationPoller');
 const { generateDailyNotifications } = require('./services/dailyReminders');
+const { handleButtonInteraction } = require('./services/buttonHandler');
 const { supabase } = require('./services/supabase');
 
 const client = new Client({
@@ -27,6 +28,16 @@ for (const file of fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'))) 
 
 // Handle slash command interactions
 client.on('interactionCreate', async interaction => {
+  // Handle button interactions
+  if (interaction.isButton()) {
+    try {
+      await handleButtonInteraction(interaction);
+    } catch (err) {
+      console.error('[ButtonHandler] Error:', err);
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
   const command = client.commands.get(interaction.commandName);
   if (!command) return;
