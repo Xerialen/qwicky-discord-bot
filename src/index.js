@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { handleMessage } = require('./listeners/messageCreate');
+const { handleScheduleMessage } = require('./listeners/scheduleParser');
 const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
 const { startNotificationPoller } = require('./services/notificationPoller');
@@ -58,8 +59,11 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-// Handle messages (hub URL detection)
-client.on('messageCreate', handleMessage);
+// Handle messages (hub URL detection + schedule parsing)
+client.on('messageCreate', async (message) => {
+  await handleMessage(message);
+  await handleScheduleMessage(message);
+});
 
 // Discord client error handlers
 client.on('error', (error) => {

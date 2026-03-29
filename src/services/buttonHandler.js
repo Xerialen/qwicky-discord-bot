@@ -23,6 +23,12 @@ async function handleButtonInteraction(interaction) {
       case 'reject':
         await handleRejectButton(interaction, entityId);
         break;
+      case 'confirm-schedule':
+        await handleConfirmSchedule(interaction, entityId);
+        break;
+      case 'cancel-schedule':
+        await handleCancelSchedule(interaction);
+        break;
       default:
         console.warn(`[ButtonHandler] Unknown action: ${action}`);
         break;
@@ -101,6 +107,44 @@ async function handleRejectButton(interaction, gameId) {
 
   await message.edit({ embeds: updatedEmbeds, components: [] });
   console.log(`[ButtonHandler] Rejected game ${gameId} by ${interaction.user.username}`);
+}
+
+async function handleConfirmSchedule(interaction, payload) {
+  // payload format: "matchId|date|time"
+  const [matchId, date, time] = payload.split('|');
+
+  const updates = { match_date: date };
+  if (time) updates.match_time = time;
+
+  const { error } = await supabase
+    .from('matches')
+    .update(updates)
+    .eq('id', matchId);
+
+  if (error) throw error;
+
+  const { EmbedBuilder } = require('discord.js');
+  const message = interaction.message;
+  const updatedEmbeds = message.embeds.map(e => {
+    const embed = EmbedBuilder.from(e)
+      .setColor(0x00C853)
+      .setTitle('Match Scheduled');
+    const fields = (e.fields || []).filter(f => f.name !== 'Current date');
+    fields.push({ name: 'Confirmed by', value: interaction.user.displayName || interaction.user.username, inline: true });
+    return embed.setFields(fields);
+  });
+
+  await message.edit({ embeds: updatedEmbeds, components: [] });
+  console.log(`[ButtonHandler] Scheduled match ${matchId} for ${date} ${time || ''} by ${interaction.user.username}`);
+}
+
+async function handleCancelSchedule(interaction) {
+  const { EmbedBuilder } = require('discord.js');
+  const message = interaction.message;
+  const updatedEmbeds = message.embeds.map(e =>
+    EmbedBuilder.from(e).setColor(0x808080).setTitle('Schedule Request Cancelled')
+  );
+  await message.edit({ embeds: updatedEmbeds, components: [] });
 }
 
 module.exports = { handleButtonInteraction };
