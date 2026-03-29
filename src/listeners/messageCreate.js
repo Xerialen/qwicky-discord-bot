@@ -2,17 +2,23 @@ const { EmbedBuilder } = require('discord.js');
 const { extractUrls } = require('../utils/parseUrl');
 const { getChannelRegistration, insertSubmission } = require('../services/supabase');
 const { fetchGameData } = require('../services/hubApi');
+const { cleanName } = require('../utils/nameNormalizer');
 
-// Clean QuakeWorld high-bit character encoding for display
-function cleanQWName(name) {
-  if (typeof name !== 'string') return String(name || '');
-  const lookup = { 0:"=",2:"=",5:".",10:" ",14:".",15:".",16:"[",17:"]",18:"0",19:"1",20:"2",21:"3",22:"4",23:"5",24:"6",25:"7",26:"8",27:"9",28:".",29:"=",30:"=",31:"=" };
-  return name.split('').map(ch => {
-    const c = ch.charCodeAt(0);
-    const n = c >= 128 ? c - 128 : c;
-    if (n < 32) return lookup[n] || '';
-    return String.fromCharCode(n);
-  }).join('').trim();
+const AUTO_APPROVE_URL = process.env.QWICKY_AUTO_APPROVE_URL; // e.g. https://qwicky.vercel.app/api/auto-approve
+
+async function callAutoApprove(submissionId, tournamentId, divisionId, gameData) {
+  if (!AUTO_APPROVE_URL) return null;
+  try {
+    const res = await fetch(AUTO_APPROVE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ submissionId, tournamentId, divisionId, gameData }),
+      signal: AbortSignal.timeout(8000),
+    });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
 }
 
 // Calculate team frags from game data (handles all formats)
@@ -27,8 +33,8 @@ function getTeamScores(gameData) {
   }
 
   // ktxstats format: teams are strings, scores from team_stats or players
-  const t1Name = cleanQWName(t1Raw || '');
-  const t2Name = cleanQWName(t2Raw || '');
+  const t1Name = cleanName(t1Raw || '');
+  const t2Name = cleanName(t2Raw || '');
 
   if (gameData.team_stats) {
     return { t1Name, t2Name, t1Score: gameData.team_stats[t1Raw]?.frags ?? '?', t2Score: gameData.team_stats[t2Raw]?.frags ?? '?' };
@@ -86,20 +92,40 @@ async function handleMessage(message) {
         continue;
       }
 
+      // Fire auto-approve (non-blocking — don't await before building embed)
+      const autoApprovePromise = callAutoApprove(
+        result.id,
+        reg.tournament_id,
+        reg.division_id,
+        gameData
+      );
+
       // Build confirmation embed for this map
       const { t1Name, t2Name, t1Score, t2Score } = getTeamScores(gameData);
       const map = gameData.map || 'unknown';
       const mode = gameData.mode || '';
 
-      embeds.push(new EmbedBuilder()
-        .setColor(0xFFB300)
+      // Wait for auto-approve result to set embed color
+      const approval = await autoApprovePromise;
+      const embedColor = approval?.status === 'approved' ? 0x00C853  // green
+        : approval?.status === 'flagged'  ? 0xFFD600  // yellow
+        : 0xFFB300;                                    // gold (pending/unknown)
+      const statusNote = approval?.status === 'approved'
+        ? `✓ Auto-approved → match ${approval.matchId}`
+        : approval?.status === 'flagged'
+          ? `⚠ Flagged: ${approval.reason}`
+          : null;
+
+      const embed = new EmbedBuilder()
+        .setColor(embedColor)
         .setTitle(`${t1Name} vs ${t2Name} — ${map}`)
         .addFields(
           { name: 'Score', value: `${t1Score} - ${t2Score}`, inline: true },
           { name: 'Mode', value: mode, inline: true },
           { name: 'Game ID', value: gameId, inline: true },
-        )
-      );
+        );
+      if (statusNote) embed.addFields({ name: 'Status', value: statusNote, inline: false });
+      embeds.push(embed);
     } catch (err) {
       console.error(`Error processing game ${gameId}:`, err);
       embeds.push(new EmbedBuilder()
@@ -113,7 +139,7 @@ async function handleMessage(message) {
   if (embeds.length > 0) {
     // Add footer only to the last embed
     embeds[embeds.length - 1].setFooter({
-      text: `${embeds.length} map(s) submitted | Pending review in QWICKY | Tournament: ${reg.tournament_id}`
+      text: `${embeds.length} map(s) submitted | Tournament: ${reg.tournament_id}${AUTO_APPROVE_URL ? ' | Auto-approve enabled' : ' | Pending review in QWICKY'}`
     });
     console.log(`[MessageCreate] Sending ${embeds.length} embed(s) as reply`);
     await message.reply({ embeds });

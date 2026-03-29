@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { handleMessage } = require('./listeners/messageCreate');
 const { startHealthServer } = require('./health');
+const { generateWeeklyReport } = require('./services/weeklyReport');
+const { supabase } = require('./services/supabase');
 
 const client = new Client({
   intents: [
@@ -104,6 +106,74 @@ client.once('clientReady', () => {
   // Start health check server (Railway requires an HTTP server)
   const PORT = process.env.PORT || 3000;
   startHealthServer(client, PORT);
+
+  // Weekly activity report scheduler — runs every Monday at 10:00 UTC
+  let lastReportDate = null;
+
+  setInterval(async () => {
+    const now = new Date();
+    const day = now.getUTCDay(); // 0=Sun, 1=Mon
+    const hour = now.getUTCHours();
+    const minute = now.getUTCMinutes();
+    const today = now.toISOString().split('T')[0];
+
+    // Only fire on Monday at 10:00 UTC, and only once per day
+    if (day !== 1 || hour !== 10 || minute !== 0) return;
+    if (lastReportDate === today) return;
+    lastReportDate = today;
+
+    console.log('[WeeklyReport] Generating weekly reports...');
+
+    try {
+      // Get all registered channels
+      const { data: channels, error } = await supabase
+        .from('tournament_channels')
+        .select('*');
+
+      if (error) {
+        console.error('[WeeklyReport] Error fetching channels:', error);
+        return;
+      }
+
+      if (!channels || channels.length === 0) {
+        console.log('[WeeklyReport] No registered channels, skipping.');
+        return;
+      }
+
+      // Group channels by tournament_id
+      const byTournament = {};
+      for (const ch of channels) {
+        if (!byTournament[ch.tournament_id]) {
+          byTournament[ch.tournament_id] = [];
+        }
+        byTournament[ch.tournament_id].push(ch.discord_channel_id);
+      }
+
+      // Generate and post report for each tournament
+      for (const [tournamentId, channelIds] of Object.entries(byTournament)) {
+        try {
+          const { embed } = await generateWeeklyReport(tournamentId);
+
+          for (const channelId of channelIds) {
+            try {
+              const channel = await client.channels.fetch(channelId);
+              if (channel) {
+                await channel.send({ embeds: [embed] });
+              }
+            } catch (sendErr) {
+              console.error(`[WeeklyReport] Failed to send to channel ${channelId}:`, sendErr.message);
+            }
+          }
+        } catch (reportErr) {
+          console.error(`[WeeklyReport] Failed to generate report for ${tournamentId}:`, reportErr.message);
+        }
+      }
+
+      console.log('[WeeklyReport] Weekly reports complete.');
+    } catch (err) {
+      console.error('[WeeklyReport] Unexpected error:', err);
+    }
+  }, 60 * 1000); // Check every 60 seconds
 });
 
 // Login to Discord
