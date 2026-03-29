@@ -6,6 +6,7 @@ const { handleMessage } = require('./listeners/messageCreate');
 const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
 const { startNotificationPoller } = require('./services/notificationPoller');
+const { generateDailyNotifications } = require('./services/dailyReminders');
 const { supabase } = require('./services/supabase');
 
 const client = new Client({
@@ -176,6 +177,28 @@ client.once('clientReady', () => {
       console.log('[WeeklyReport] Weekly reports complete.');
     } catch (err) {
       console.error('[WeeklyReport] Unexpected error:', err);
+    }
+  }, 60 * 1000); // Check every 60 seconds
+
+  // Daily reminder scheduler — runs every day at 09:00 UTC
+  let lastReminderDate = null;
+
+  setInterval(async () => {
+    const now = new Date();
+    const hour = now.getUTCHours();
+    const minute = now.getUTCMinutes();
+    const today = now.toISOString().split('T')[0];
+
+    if (hour !== 9 || minute !== 0) return;
+    if (lastReminderDate === today) return;
+    lastReminderDate = today;
+
+    console.log('[DailyReminders] Running daily notifications...');
+    try {
+      await generateDailyNotifications(today);
+      console.log('[DailyReminders] Daily notifications complete.');
+    } catch (err) {
+      console.error('[DailyReminders] Unexpected error:', err);
     }
   }, 60 * 1000); // Check every 60 seconds
 });
