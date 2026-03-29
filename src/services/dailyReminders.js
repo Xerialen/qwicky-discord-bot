@@ -189,4 +189,19 @@ async function enqueueStalePendingAlerts(tournamentId, channelIds) {
   console.log(`[DailyReminders] Enqueued stale pending alert for ${tournamentId} (${stale.length} submissions)`);
 }
 
-module.exports = { generateDailyNotifications };
+async function cleanupOldNotifications() {
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { count, error } = await supabase
+    .from('discord_notifications')
+    .delete({ count: 'exact' })
+    .in('status', ['completed', 'failed'])
+    .lt('created_at', cutoff);
+
+  if (error) {
+    console.error('[Cleanup] Error deleting old notifications:', error.message);
+  } else if (count > 0) {
+    console.log(`[Cleanup] Deleted ${count} notification(s) older than 7 days`);
+  }
+}
+
+module.exports = { generateDailyNotifications, cleanupOldNotifications };

@@ -6,7 +6,7 @@ const { handleMessage } = require('./listeners/messageCreate');
 const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
 const { startNotificationPoller } = require('./services/notificationPoller');
-const { generateDailyNotifications } = require('./services/dailyReminders');
+const { generateDailyNotifications, cleanupOldNotifications } = require('./services/dailyReminders');
 const { handleButtonInteraction } = require('./services/buttonHandler');
 const { supabase } = require('./services/supabase');
 
@@ -207,6 +207,7 @@ client.once('clientReady', () => {
     console.log('[DailyReminders] Running daily notifications...');
     try {
       await generateDailyNotifications(today);
+      await cleanupOldNotifications();
       console.log('[DailyReminders] Daily notifications complete.');
     } catch (err) {
       console.error('[DailyReminders] Unexpected error:', err);
