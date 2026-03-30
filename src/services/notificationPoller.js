@@ -5,6 +5,7 @@ const { handleGameDayReminder } = require('./handlers/gameDayReminder');
 const { handleUnscheduledAlert } = require('./handlers/unscheduledAlert');
 const { handleAdminAlert } = require('./handlers/adminAlert');
 const { handleDiscoverySummary } = require('./handlers/discoverySummary');
+const { handleAnnouncement } = require('./handlers/announcement');
 
 // Handler registry — extend as new notification types are added
 const handlers = {
@@ -14,6 +15,7 @@ const handlers = {
   'unscheduled_alert': handleUnscheduledAlert,
   'admin_alert': handleAdminAlert,
   'discovery_summary': handleDiscoverySummary,
+  'announcement': handleAnnouncement,
 };
 
 async function pollOnce(client) {
