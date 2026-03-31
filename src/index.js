@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { handleMessage } = require('./listeners/messageCreate');
 const { handleScheduleMessage } = require('./listeners/scheduleParser');
+const { handleQwickyFeedback } = require('./listeners/qwickyFeedback');
 const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
 const { startNotificationPoller } = require('./services/notificationPoller');
@@ -63,10 +64,11 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-// Handle messages (hub URL detection + schedule parsing)
+// Handle messages (hub URL detection + schedule parsing + qwicky feedback forwarding)
 client.on('messageCreate', async (message) => {
   await handleMessage(message);
   await handleScheduleMessage(message);
+  await handleQwickyFeedback(message);
 });
 
 // Discord client error handlers
