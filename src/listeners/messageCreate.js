@@ -5,13 +5,17 @@ const { fetchGameData } = require('../services/hubApi');
 const { cleanName } = require('../utils/nameNormalizer');
 
 const AUTO_APPROVE_URL = process.env.QWICKY_AUTO_APPROVE_URL; // e.g. https://qwicky.vercel.app/api/auto-approve
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 
 async function callAutoApprove(submissionId, tournamentId, divisionId, gameData) {
   if (!AUTO_APPROVE_URL) return null;
   try {
     const res = await fetch(AUTO_APPROVE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ADMIN_API_KEY}`,
+      },
       body: JSON.stringify({ submissionId, tournamentId, divisionId, gameData }),
       signal: AbortSignal.timeout(8000),
     });
