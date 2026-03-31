@@ -19,10 +19,26 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { content, channelId } = await req.json();
+  let body: { content?: unknown; channelId?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  const { content, channelId } = body;
   if (!content || typeof content !== "string") {
     return new Response(
       JSON.stringify({ error: "Missing or invalid 'content' field" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+  if (content.length > 2000) {
+    return new Response(
+      JSON.stringify({ error: "Content exceeds 2000 character limit" }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
