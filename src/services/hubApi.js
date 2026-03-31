@@ -6,8 +6,8 @@ async function fetchGameData(gameId) {
   const url = `${HUB_DB_URL}?id=eq.${gameId}&select=*`;
   const response = await fetch(url, {
     headers: {
-      'apikey': HUB_SUPABASE_KEY,
-      'Authorization': `Bearer ${HUB_SUPABASE_KEY}`,
+      apikey: HUB_SUPABASE_KEY,
+      Authorization: `Bearer ${HUB_SUPABASE_KEY}`,
       'Content-Type': 'application/json',
     },
   });
@@ -24,13 +24,10 @@ async function fetchGameData(gameId) {
   const game = data[0];
 
   // 2. Build ktxstats URL from demo hash
-  let statsUrl = null;
-  if (game.demo_sha256) {
-    const chk = game.demo_sha256;
-    statsUrl = `https://d.quake.world/${chk.substring(0,3)}/${chk}.mvd.ktxstats.json`;
-  } else {
-    statsUrl = game.demo_source_url || game.url;
-  }
+  const chk = game.demo_sha256;
+  const statsUrl = chk
+    ? `https://d.quake.world/${chk.substring(0, 3)}/${chk}.mvd.ktxstats.json`
+    : game.demo_source_url || game.url;
 
   if (!statsUrl) {
     throw new Error(`No demo path found for game ${gameId}`);
@@ -40,7 +37,7 @@ async function fetchGameData(gameId) {
   const statsResponse = await fetch(statsUrl, {
     headers: {
       'User-Agent': 'QwickyBot/1.0',
-      'Accept': '*/*',
+      Accept: '*/*',
     },
     signal: AbortSignal.timeout(10000),
   });

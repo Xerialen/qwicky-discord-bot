@@ -5,10 +5,10 @@ const QWICKY_BASE_URL = process.env.QWICKY_URL || 'https://qwicky.vercel.app';
 
 // Schedule checks: which days to run for each schedule type
 const SCHEDULE_DAYS = {
-  daily: null,                    // every day
-  'twice-weekly': [3, 0],        // Wednesday + Sunday
-  weekly: [0],                    // Sunday only
-  manual: [],                     // never auto-run
+  daily: null, // every day
+  'twice-weekly': [3, 0], // Wednesday + Sunday
+  weekly: [0], // Sunday only
+  manual: [], // never auto-run
 };
 
 async function checkAndRunDiscovery() {
@@ -19,9 +19,7 @@ async function checkAndRunDiscovery() {
   if (hour !== DISCOVERY_HOUR) return;
 
   // Find tournaments with discovery enabled
-  const { data: tournaments, error } = await supabase
-    .from('tournaments')
-    .select('id, settings');
+  const { data: tournaments, error } = await supabase.from('tournaments').select('id, settings');
 
   if (error) {
     console.error('[DiscoveryScheduler] Error fetching tournaments:', error.message);
@@ -54,7 +52,9 @@ async function checkAndRunDiscovery() {
 
       if (res.ok) {
         const data = await res.json();
-        console.log(`[DiscoveryScheduler] ${t.id}: ${data.candidatesFound} candidates, ${data.posted} posted, ${data.autoImported} auto-imported, ${data.skippedDuplicates} dupes skipped`);
+        console.log(
+          `[DiscoveryScheduler] ${t.id}: ${data.candidatesFound} candidates, ${data.posted} posted, ${data.autoImported} auto-imported, ${data.skippedDuplicates} dupes skipped`
+        );
       } else {
         const err = await res.text();
         console.error(`[DiscoveryScheduler] ${t.id}: HTTP ${res.status} — ${err}`);

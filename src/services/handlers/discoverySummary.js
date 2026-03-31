@@ -1,9 +1,9 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 function confidenceColor(score) {
-  if (score >= 80) return 0x00C853; // green
-  if (score >= 50) return 0xFFB300; // amber
-  return 0xFF3366;                   // red
+  if (score >= 80) return 0x00c853; // green
+  if (score >= 50) return 0xffb300; // amber
+  return 0xff3366; // red
 }
 
 function confidenceLabel(score) {
@@ -25,12 +25,16 @@ async function handleDiscoverySummary(client, notification) {
   // Header embed with summary
   if (summary) {
     const headerEmbed = new EmbedBuilder()
-      .setColor(0xFFB300)
+      .setColor(0xffb300)
       .setTitle('Game Discovery Results')
-      .setDescription([
-        `Scanned **${summary.scanned}** games, found **${candidates.length}** candidate series`,
-        summary.totalMaps ? `**${summary.totalMaps}** total maps across all candidates` : null,
-      ].filter(Boolean).join('\n'))
+      .setDescription(
+        [
+          `Scanned **${summary.scanned}** games, found **${candidates.length}** candidate series`,
+          summary.totalMaps ? `**${summary.totalMaps}** total maps across all candidates` : null,
+        ]
+          .filter(Boolean)
+          .join('\n')
+      )
       .setFooter({ text: `Tournament: ${tournament_id}` });
 
     await channel.send({ embeds: [headerEmbed] });
@@ -44,7 +48,9 @@ async function handleDiscoverySummary(client, notification) {
     const embed = new EmbedBuilder()
       .setColor(color)
       .setTitle(`${series.team1}  vs  ${series.team2}`)
-      .setDescription(`**${series.mapCount}** map(s)  \u2022  Confidence: **${Math.round(series.avgConfidence)}%** (${label})  \u2022  Source: ${series.source || 'unknown'}`);
+      .setDescription(
+        `**${series.mapCount}** map(s)  \u2022  Confidence: **${Math.round(series.avgConfidence)}%** (${label})  \u2022  Source: ${series.source || 'unknown'}`
+      );
 
     // Add each map as a field
     for (const game of (series.games || []).slice(0, 10)) {
@@ -75,7 +81,7 @@ async function handleDiscoverySummary(client, notification) {
         new ButtonBuilder()
           .setCustomId(`qwicky:reject:${firstGameId}`)
           .setLabel('Reject')
-          .setStyle(ButtonStyle.Danger),
+          .setStyle(ButtonStyle.Danger)
       );
       components.push(row);
     }
@@ -87,7 +93,9 @@ async function handleDiscoverySummary(client, notification) {
     await channel.send(`... and ${candidates.length - 10} more candidates. Review all in QWICKY.`);
   }
 
-  console.log(`[DiscoverySummary] Posted ${Math.min(candidates.length, 10)} candidate(s) to channel ${notification.channel_id}`);
+  console.log(
+    `[DiscoverySummary] Posted ${Math.min(candidates.length, 10)} candidate(s) to channel ${notification.channel_id}`
+  );
 }
 
 module.exports = { handleDiscoverySummary };

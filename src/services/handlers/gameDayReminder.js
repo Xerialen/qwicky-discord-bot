@@ -8,12 +8,10 @@ async function handleGameDayReminder(client, notification) {
   const channel = await client.channels.fetch(notification.channel_id);
   if (!channel) throw new Error(`Channel ${notification.channel_id} not found`);
 
-  const title = division_name
-    ? `Matches Today \u2014 ${division_name}`
-    : 'Matches Today';
+  const title = division_name ? `Matches Today \u2014 ${division_name}` : 'Matches Today';
 
   const embed = new EmbedBuilder()
-    .setColor(0x2196F3) // blue
+    .setColor(0x2196f3) // blue
     .setTitle(title)
     .setDescription(`${matches.length} match(es) scheduled for **${date}**`);
 
@@ -34,7 +32,9 @@ async function handleGameDayReminder(client, notification) {
   embed.setFooter({ text: 'Good luck! Post hub URLs here when played.' });
 
   await channel.send({ embeds: [embed] });
-  console.log(`[GameDayReminder] Posted ${matches.length} match(es) to channel ${notification.channel_id}`);
+  console.log(
+    `[GameDayReminder] Posted ${matches.length} match(es) to channel ${notification.channel_id}`
+  );
 }
 
 module.exports = { handleGameDayReminder };
