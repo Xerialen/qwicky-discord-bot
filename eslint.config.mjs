@@ -30,6 +30,21 @@ export default [
     },
   },
   {
+    files: ['src/__tests__/**/*.js'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        vi: 'readonly',
+      },
+    },
+  },
+  {
     ignores: ['node_modules/', 'supabase/'],
   },
 ];
