@@ -1,4 +1,8 @@
-const HUB_DB_URL = 'https://ncsphkjfominimxztjip.supabase.co/rest/v1/v1_games';
+const HUB_SUPABASE_URL = process.env.HUB_SUPABASE_URL;
+if (!HUB_SUPABASE_URL) {
+  throw new Error('HUB_SUPABASE_URL environment variable is not set');
+}
+const HUB_DB_URL = `${HUB_SUPABASE_URL}/rest/v1/v1_games`;
 const HUB_SUPABASE_KEY = process.env.HUB_SUPABASE_KEY;
 
 async function fetchGameData(gameId) {

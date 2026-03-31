@@ -10,6 +10,8 @@
 | `DISCORD_CLIENT_ID` | Application (client) ID for slash command registration |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (full DB access) |
+| `HUB_SUPABASE_URL` | QuakeWorld Hub Supabase base URL (game data lookups) |
+| `HUB_SUPABASE_KEY` | QuakeWorld Hub Supabase anon key |
 
 Set via Fly.io:
 ```bash
