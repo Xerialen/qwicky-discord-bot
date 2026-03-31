@@ -35,7 +35,7 @@ module.exports = {
         });
       }
 
-      await channel.send(message);
+      await channel.send({ content: message, allowedMentions: { parse: [] } });
 
       await interaction.reply({
         content: `Message posted to <#${channelId}>.`,
