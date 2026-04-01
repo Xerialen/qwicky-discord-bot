@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "deploy-commands": "node src/deploy-commands.js"
+    "deploy-commands": "node src/deploy-commands.js",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write 'src/**/*.js'",
+    "format:check": "prettier --check 'src/**/*.js'",
+    "test": "vitest run --passWithNoTests"
   },
   "repository": {
     "type": "git",
@@ -25,6 +30,10 @@
     "dotenv": "^17.2.4"
   },
   "devDependencies": {
-    "@railway/cli": "^4.29.0"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
+    "vitest": "^3.0.0"
   }
 }

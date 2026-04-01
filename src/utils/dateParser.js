@@ -3,17 +3,49 @@
 
 const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const WEEKDAY_SHORT = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-const MONTH_SHORT = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const MONTHS = [
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december',
+];
+const MONTH_SHORT = [
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
+];
 
 // CET = UTC+1, CEST = UTC+2 (most QW players are European)
 const TZ_OFFSETS = {
-  'utc': 0, 'gmt': 0,
-  'cet': 1, 'cest': 2,
-  'eet': 2, 'eest': 3,
-  'est': -5, 'edt': -4,
-  'cst': -6, 'cdt': -5,
-  'pst': -8, 'pdt': -7,
+  utc: 0,
+  gmt: 0,
+  cet: 1,
+  cest: 2,
+  eet: 2,
+  eest: 3,
+  est: -5,
+  edt: -4,
+  cst: -6,
+  cdt: -5,
+  pst: -8,
+  pdt: -7,
 };
 
 function parseDate(text) {
@@ -32,7 +64,7 @@ function parseDate(text) {
 
   // --- Extract time ---
   // 20:00, 20.00, 8pm, 8:30pm, @21, bare "21" (only if 15-23 range)
-  const time24 = lower.match(/\b(\d{1,2})[:\.](\d{2})\b/);
+  const time24 = lower.match(/\b(\d{1,2})[:.](\d{2})\b/);
   const time12 = lower.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/);
   const timeAt = lower.match(/@\s*(\d{1,2})/);
 
@@ -67,8 +99,9 @@ function parseDate(text) {
 
   // European numeric: 15/04, 15/04/2026, 15.04.2026
   if (!date) {
-    const euro = lower.match(/\b(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{2,4}))?\b/);
-    if (euro && !time24) { // avoid confusing 20:00 with a date
+    const euro = lower.match(/\b(\d{1,2})[/.](\d{1,2})(?:[/.](\d{2,4}))?\b/);
+    if (euro && !time24) {
+      // avoid confusing 20:00 with a date
       const d = parseInt(euro[1]);
       const m = parseInt(euro[2]);
       let y = euro[3] ? parseInt(euro[3]) : now.getFullYear();
@@ -120,12 +153,6 @@ function parseDate(text) {
       if (new RegExp(`\\b(?:${full}|${short})\\b`).test(lower)) {
         const currentDay = now.getDay();
         let diff = wi - currentDay;
-        if (diff <= 0 || hasNext) diff += 7;
-        if (hasNext && diff <= 7) diff += 7; // "next" means the week after
-        // Actually "next monday" when today is sunday should be tomorrow+1week
-        // Let's simplify: if diff <= 0, add 7. If "next", always add 7 from the upcoming one.
-        // Recalculate:
-        diff = wi - currentDay;
         if (diff <= 0) diff += 7;
         if (hasNext) diff += 7;
         const target = new Date(now);

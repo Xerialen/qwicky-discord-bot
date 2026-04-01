@@ -4,10 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const { handleMessage } = require('./listeners/messageCreate');
 const { handleScheduleMessage } = require('./listeners/scheduleParser');
+const { handleQwickyFeedback } = require('./listeners/qwickyFeedback');
 const { startHealthServer } = require('./health');
 const { generateWeeklyReport } = require('./services/weeklyReport');
 const { startNotificationPoller } = require('./services/notificationPoller');
-const { generateDailyNotifications, cleanupOldNotifications } = require('./services/dailyReminders');
+const {
+  generateDailyNotifications,
+  cleanupOldNotifications,
+} = require('./services/dailyReminders');
 const { checkAndRunDiscovery } = require('./services/discoveryScheduler');
 const { handleButtonInteraction } = require('./services/buttonHandler');
 const { supabase } = require('./services/supabase');
@@ -23,13 +27,13 @@ const client = new Client({
 // Load slash commands
 client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
-for (const file of fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'))) {
+for (const file of fs.readdirSync(commandsPath).filter((f) => f.endsWith('.js'))) {
   const command = require(path.join(commandsPath, file));
   client.commands.set(command.data.name, command);
 }
 
 // Handle slash command interactions
-client.on('interactionCreate', async interaction => {
+client.on('interactionCreate', async (interaction) => {
   // Handle button interactions
   if (interaction.isButton()) {
     try {
@@ -60,10 +64,11 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-// Handle messages (hub URL detection + schedule parsing)
+// Handle messages (hub URL detection + schedule parsing + qwicky feedback forwarding)
 client.on('messageCreate', async (message) => {
   await handleMessage(message);
   await handleScheduleMessage(message);
+  await handleQwickyFeedback(message);
 });
 
 // Discord client error handlers
@@ -147,9 +152,7 @@ client.once('clientReady', () => {
 
     try {
       // Get all registered channels
-      const { data: channels, error } = await supabase
-        .from('tournament_channels')
-        .select('*');
+      const { data: channels, error } = await supabase.from('tournament_channels').select('*');
 
       if (error) {
         console.error('[WeeklyReport] Error fetching channels:', error);
@@ -182,11 +185,17 @@ client.once('clientReady', () => {
                 await channel.send({ embeds: [embed] });
               }
             } catch (sendErr) {
-              console.error(`[WeeklyReport] Failed to send to channel ${channelId}:`, sendErr.message);
+              console.error(
+                `[WeeklyReport] Failed to send to channel ${channelId}:`,
+                sendErr.message
+              );
             }
           }
         } catch (reportErr) {
-          console.error(`[WeeklyReport] Failed to generate report for ${tournamentId}:`, reportErr.message);
+          console.error(
+            `[WeeklyReport] Failed to generate report for ${tournamentId}:`,
+            reportErr.message
+          );
         }
       }
 
@@ -244,7 +253,7 @@ client.once('clientReady', () => {
 
 // Login to Discord
 console.log('🔄 Logging in to Discord...');
-client.login(process.env.DISCORD_TOKEN).catch(err => {
+client.login(process.env.DISCORD_TOKEN).catch((err) => {
   console.error('❌ Failed to login:', err.message);
   process.exit(1);
 });

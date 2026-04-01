@@ -9,7 +9,7 @@ async function handleUnscheduledAlert(client, notification) {
   if (!channel) throw new Error(`Channel ${notification.channel_id} not found`);
 
   const embed = new EmbedBuilder()
-    .setColor(0xFF9800) // orange
+    .setColor(0xff9800) // orange
     .setTitle('Unscheduled Matches')
     .setDescription(`**${total_unscheduled}** match(es) still need a date`);
 
@@ -33,7 +33,9 @@ async function handleUnscheduledAlert(client, notification) {
   embed.setFooter({ text: 'Set dates in the QWICKY Schedule tab.' });
 
   await channel.send({ embeds: [embed] });
-  console.log(`[UnscheduledAlert] Posted ${total_unscheduled} unscheduled match(es) to channel ${notification.channel_id}`);
+  console.log(
+    `[UnscheduledAlert] Posted ${total_unscheduled} unscheduled match(es) to channel ${notification.channel_id}`
+  );
 }
 
 module.exports = { handleUnscheduledAlert };
