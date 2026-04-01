@@ -11,10 +11,14 @@ const { cleanName } = require('../utils/nameNormalizer');
 async function callAutoApprove(submissionId, tournamentId, divisionId, gameData) {
   const autoApproveUrl = process.env.QWICKY_AUTO_APPROVE_URL;
   if (!autoApproveUrl) return null;
+  const adminApiKey = process.env.ADMIN_API_KEY;
   try {
     const res = await fetch(autoApproveUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminApiKey}`,
+      },
       body: JSON.stringify({ submissionId, tournamentId, divisionId, gameData }),
       signal: AbortSignal.timeout(8000),
     });

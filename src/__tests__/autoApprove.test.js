@@ -18,11 +18,13 @@ describe('callAutoApprove', () => {
   beforeEach(() => {
     fetchMock = vi.spyOn(global, 'fetch');
     delete process.env.QWICKY_AUTO_APPROVE_URL;
+    delete process.env.ADMIN_API_KEY;
   });
 
   afterEach(() => {
     fetchMock.mockRestore();
     delete process.env.QWICKY_AUTO_APPROVE_URL;
+    delete process.env.ADMIN_API_KEY;
   });
 
   it('returns null without fetching when QWICKY_AUTO_APPROVE_URL is not set', async () => {
@@ -31,8 +33,9 @@ describe('callAutoApprove', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('sends POST with correct JSON payload', async () => {
+  it('sends POST with correct JSON payload and Authorization header', async () => {
     process.env.QWICKY_AUTO_APPROVE_URL = AUTO_APPROVE_URL;
+    process.env.ADMIN_API_KEY = 'test-admin-key';
     const gameData = { teams: ['alpha', 'beta'], map: 'dm2' };
     fetchMock.mockResolvedValue({
       ok: true,
@@ -45,7 +48,10 @@ describe('callAutoApprove', () => {
       AUTO_APPROVE_URL,
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer test-admin-key',
+        },
         body: JSON.stringify({
           submissionId: 'sub1',
           tournamentId: 'qwi-2025',
