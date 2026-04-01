@@ -63,4 +63,4 @@ function startNotificationPoller(client, intervalMs = 30000) {
   setInterval(() => pollOnce(client), intervalMs);
 }
 
-module.exports = { startNotificationPoller };
+module.exports = { startNotificationPoller, pollOnce };

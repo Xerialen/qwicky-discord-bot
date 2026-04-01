@@ -8,12 +8,11 @@ const {
 const { fetchGameData } = require('../services/hubApi');
 const { cleanName } = require('../utils/nameNormalizer');
 
-const AUTO_APPROVE_URL = process.env.QWICKY_AUTO_APPROVE_URL; // e.g. https://qwicky.vercel.app/api/auto-approve
-
 async function callAutoApprove(submissionId, tournamentId, divisionId, gameData) {
-  if (!AUTO_APPROVE_URL) return null;
+  const autoApproveUrl = process.env.QWICKY_AUTO_APPROVE_URL;
+  if (!autoApproveUrl) return null;
   try {
-    const res = await fetch(AUTO_APPROVE_URL, {
+    const res = await fetch(autoApproveUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ submissionId, tournamentId, divisionId, gameData }),
@@ -167,7 +166,7 @@ async function handleMessage(message) {
   if (embeds.length > 0) {
     // Add footer only to the last embed
     embeds[embeds.length - 1].setFooter({
-      text: `${embeds.length} map(s) submitted | Tournament: ${reg.tournament_id}${AUTO_APPROVE_URL ? ' | Auto-approve enabled' : ' | Pending review in QWICKY'}`,
+      text: `${embeds.length} map(s) submitted | Tournament: ${reg.tournament_id}${process.env.QWICKY_AUTO_APPROVE_URL ? ' | Auto-approve enabled' : ' | Pending review in QWICKY'}`,
     });
     console.log(`[MessageCreate] Sending ${embeds.length} embed(s) as reply`);
     const replyMsg = await message.reply({ embeds });
@@ -184,4 +183,4 @@ async function handleMessage(message) {
   }
 }
 
-module.exports = { handleMessage, getTeamScores };
+module.exports = { handleMessage, getTeamScores, callAutoApprove };
