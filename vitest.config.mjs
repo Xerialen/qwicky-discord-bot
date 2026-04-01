@@ -7,6 +7,7 @@ export default defineConfig({
     env: {
       SUPABASE_URL: 'https://placeholder.supabase.co',
       SUPABASE_SERVICE_KEY: 'placeholder-key',
+      HUB_SUPABASE_URL: 'https://placeholder-hub.supabase.co',
     },
   },
 });
