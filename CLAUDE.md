@@ -12,10 +12,12 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (full DB access) |
 | `HUB_SUPABASE_URL` | QuakeWorld Hub Supabase base URL (game data lookups) |
 | `HUB_SUPABASE_KEY` | QuakeWorld Hub Supabase anon key |
+| `QWICKY_AUTO_APPROVE_URL` | URL of the qwicky auto-approve endpoint (e.g. `https://qwicky.vercel.app/api/auto-approve`) |
+| `ADMIN_API_KEY` | Shared secret for qwicky admin API endpoints. Must match `ADMIN_API_KEY` set on the Vercel deployment. |
 
 Set via Fly.io:
 ```bash
-flyctl secrets set DISCORD_BOT_TOKEN=... DISCORD_CLIENT_ID=... SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
+flyctl secrets set DISCORD_BOT_TOKEN=... DISCORD_CLIENT_ID=... SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... QWICKY_AUTO_APPROVE_URL=... ADMIN_API_KEY=...
 ```
 
 ### Supabase Edge Functions
