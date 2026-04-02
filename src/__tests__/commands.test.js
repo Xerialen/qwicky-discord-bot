@@ -122,6 +122,17 @@ describe('announce command', () => {
       })
     );
   });
+
+  it('handles errors from channel.send', async () => {
+    mockChannel.send.mockRejectedValue(new Error('Cannot send messages'));
+    await announce.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining('Failed to send'),
+        ephemeral: true,
+      })
+    );
+  });
 });
 
 // ─── /register ────────────────────────────────────────────────────────────────
@@ -187,6 +198,20 @@ describe('register command', () => {
       })
     );
   });
+
+  it('success reply is not ephemeral', async () => {
+    spySupabaseFrom.mockReturnValue(makeChain({ data: {}, error: null }));
+    await register.execute(interaction);
+    const replyArg = interaction.reply.mock.calls[0][0];
+    expect(replyArg.ephemeral).toBeUndefined();
+  });
+
+  it('reply does not include division scope when no divisionId provided', async () => {
+    spySupabaseFrom.mockReturnValue(makeChain({ data: {}, error: null }));
+    await register.execute(interaction);
+    const content = interaction.reply.mock.calls[0][0].content;
+    expect(content).not.toContain('division');
+  });
 });
 
 // ─── /unregister ──────────────────────────────────────────────────────────────
@@ -238,6 +263,24 @@ describe('unregister command', () => {
       })
     );
   });
+
+  it('calls delete with the correct channelId', async () => {
+    const getChain = makeChain({ data: { tournament_id: 'qwi-2025' }, error: null });
+    const deleteChain = makeChain({ data: null, error: null });
+    spySupabaseFrom.mockReturnValueOnce(getChain).mockReturnValueOnce(deleteChain);
+    await unregister.execute(interaction);
+    expect(deleteChain.delete).toHaveBeenCalled();
+    expect(deleteChain.eq).toHaveBeenCalledWith('discord_channel_id', 'channel123');
+  });
+
+  it('success reply is not ephemeral', async () => {
+    spySupabaseFrom.mockReturnValue(
+      makeChain({ data: { tournament_id: 'qwi-2025' }, error: null })
+    );
+    await unregister.execute(interaction);
+    const replyArg = interaction.reply.mock.calls[0][0];
+    expect(replyArg.ephemeral).toBeUndefined();
+  });
 });
 
 // ─── /status ──────────────────────────────────────────────────────────────────
@@ -263,6 +306,13 @@ describe('status command', () => {
     );
   });
 
+  it('not-linked reply includes /register hint', async () => {
+    spySupabaseFrom.mockReturnValue(makeChain({ data: null, error: { code: 'PGRST116' } }));
+    await status.execute(interaction);
+    const content = interaction.reply.mock.calls[0][0].content;
+    expect(content).toContain('/register');
+  });
+
   it('shows tournament and registered_by in reply', async () => {
     spySupabaseFrom.mockReturnValue(
       makeChain({
@@ -279,6 +329,40 @@ describe('status command', () => {
     const content = interaction.reply.mock.calls[0][0].content;
     expect(content).toContain('qwi-2025');
     expect(content).toContain('user456');
+  });
+
+  it('registered_by is formatted as a Discord mention', async () => {
+    spySupabaseFrom.mockReturnValue(
+      makeChain({
+        data: {
+          tournament_id: 'qwi-2025',
+          division_id: null,
+          registered_by: 'user456',
+          created_at: '2025-01-01T00:00:00.000Z',
+        },
+        error: null,
+      })
+    );
+    await status.execute(interaction);
+    const content = interaction.reply.mock.calls[0][0].content;
+    expect(content).toContain('<@user456>');
+  });
+
+  it('reply includes Since: date line from created_at', async () => {
+    spySupabaseFrom.mockReturnValue(
+      makeChain({
+        data: {
+          tournament_id: 'qwi-2025',
+          division_id: null,
+          registered_by: 'user456',
+          created_at: '2025-01-01T00:00:00.000Z',
+        },
+        error: null,
+      })
+    );
+    await status.execute(interaction);
+    const content = interaction.reply.mock.calls[0][0].content;
+    expect(content).toContain('Since:');
   });
 
   it('shows division when present', async () => {
