@@ -8,19 +8,6 @@
 // on a plain-object embed would throw with the real implementation, and the factory
 // only calls mock methods inline (not in tests) so the CJS limitation doesn't apply.
 
-vi.mock('discord.js', () => {
-  const mockEmbedInstance = {
-    setColor: vi.fn().mockReturnThis(),
-    setTitle: vi.fn().mockReturnThis(),
-    setFields: vi.fn().mockReturnThis(),
-  };
-  return {
-    EmbedBuilder: {
-      from: vi.fn().mockReturnValue(mockEmbedInstance),
-    },
-  };
-});
-
 let handleButtonInteraction;
 let spySupabaseFrom;
 
@@ -152,6 +139,28 @@ describe('handleButtonInteraction', () => {
     );
   });
 
+  // TC-10.19: Button approve updates embed color to green
+  it('approve: sets embed color to green (0x00c853)', async () => {
+    const interaction = makeAdminInteraction('qwicky:approve:game123');
+    const submission = {
+      id: 'sub1',
+      status: 'pending',
+      tournament_id: 'qwi-2025',
+      discord_channel_id: 'c1',
+    };
+    spySupabaseFrom
+      .mockReturnValueOnce(makeSelectChain({ data: submission, error: null }))
+      .mockReturnValueOnce(makeUpdateChain({ error: null }));
+
+    await handleButtonInteraction(interaction);
+
+    // discord.js EmbedBuilder inline require is not intercepted by vi.mock in CJS mode,
+    // so we verify the color via the real embed's data property.
+    const editArgs = interaction.message.edit.mock.calls[0][0];
+    expect(editArgs.embeds).toHaveLength(1);
+    expect(editArgs.embeds[0].data.color).toBe(0x00c853);
+  });
+
   // ─── Reject ─────────────────────────────────────────────────────────────────
 
   it('reject: followsUp "No pending submission" when game is not found', async () => {
@@ -175,6 +184,21 @@ describe('handleButtonInteraction', () => {
     expect(interaction.message.edit).toHaveBeenCalledWith(
       expect.objectContaining({ components: [] })
     );
+  });
+
+  // TC-10.20: Button reject updates embed color to red
+  it('reject: sets embed color to red (0xff3366)', async () => {
+    const interaction = makeAdminInteraction('qwicky:reject:game456');
+    const submission = { id: 'sub2', status: 'pending' };
+    spySupabaseFrom
+      .mockReturnValueOnce(makeSelectChain({ data: submission, error: null }))
+      .mockReturnValueOnce(makeUpdateChain({ error: null }));
+
+    await handleButtonInteraction(interaction);
+
+    const editArgs = interaction.message.edit.mock.calls[0][0];
+    expect(editArgs.embeds).toHaveLength(1);
+    expect(editArgs.embeds[0].data.color).toBe(0xff3366);
   });
 
   // ─── Confirm schedule ────────────────────────────────────────────────────────
