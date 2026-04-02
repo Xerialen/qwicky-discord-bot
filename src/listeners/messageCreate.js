@@ -17,7 +17,7 @@ async function callAutoApprove(submissionId, tournamentId, divisionId, gameData)
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${adminApiKey}`,
+        Authorization: `Bearer ${adminApiKey}`,
       },
       body: JSON.stringify({ submissionId, tournamentId, divisionId, gameData }),
       signal: AbortSignal.timeout(8000),
