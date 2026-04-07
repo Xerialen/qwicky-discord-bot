@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/Xerialen/qwicky-discord-bot#readme",
   "dependencies": {
+    "@libsql/client": "^0.17.2",
     "@supabase/supabase-js": "^2.95.3",
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.4"
