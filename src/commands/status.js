@@ -11,7 +11,8 @@ module.exports = {
       const reg = await getChannelRegistration(interaction.channelId);
       if (!reg) {
         return interaction.reply({
-          content: 'This channel is not linked to any tournament.\nUse `/register <tournament-id>` to link it.',
+          content:
+            'This channel is not linked to any tournament.\nUse `/register <tournament-id>` to link it.',
           ephemeral: true,
         });
       }

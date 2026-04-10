@@ -60,7 +60,7 @@ async function enqueueGameDayReminders(tournamentId, channelIds, today) {
     .eq('status', 'scheduled');
 
   if (error) {
-    console.error('[DailyReminders] Error fetching today\'s matches:', error.message);
+    console.error("[DailyReminders] Error fetching today's matches:", error.message);
     return;
   }
   if (!matches || matches.length === 0) return;
@@ -74,14 +74,11 @@ async function enqueueGameDayReminders(tournamentId, channelIds, today) {
   }
 
   // Look up division names
-  const divIds = Object.keys(byDivision).filter(k => k !== 'default');
+  const divIds = Object.keys(byDivision).filter((k) => k !== 'default');
   let divNames = {};
   if (divIds.length > 0) {
-    const { data: divs } = await supabase
-      .from('divisions')
-      .select('id, name')
-      .in('id', divIds);
-    if (divs) divNames = Object.fromEntries(divs.map(d => [d.id, d.name]));
+    const { data: divs } = await supabase.from('divisions').select('id, name').in('id', divIds);
+    if (divs) divNames = Object.fromEntries(divs.map((d) => [d.id, d.name]));
   }
 
   const rows = [];
@@ -94,8 +91,9 @@ async function enqueueGameDayReminders(tournamentId, channelIds, today) {
         payload: {
           date: today,
           division_name: divNames[divId] || null,
-          matches: divMatches.map(m => ({
-            team1: m.team1, team2: m.team2,
+          matches: divMatches.map((m) => ({
+            team1: m.team1,
+            team2: m.team2,
             time: m.match_time || null,
             bestOf: m.best_of,
             round: m.round,
@@ -108,8 +106,12 @@ async function enqueueGameDayReminders(tournamentId, channelIds, today) {
 
   if (rows.length > 0) {
     const { error: insertErr } = await supabase.from('discord_notifications').insert(rows);
-    if (insertErr) console.error('[DailyReminders] Error enqueuing game day reminders:', insertErr.message);
-    else console.log(`[DailyReminders] Enqueued ${rows.length} game day reminder(s) for ${tournamentId}`);
+    if (insertErr)
+      console.error('[DailyReminders] Error enqueuing game day reminders:', insertErr.message);
+    else
+      console.log(
+        `[DailyReminders] Enqueued ${rows.length} game day reminder(s) for ${tournamentId}`
+      );
   }
 }
 
@@ -128,11 +130,11 @@ async function enqueueUnscheduledAlerts(tournamentId, channelIds) {
   if (!matches || matches.length === 0) return;
 
   // Look up division names
-  const divIds = [...new Set(matches.map(m => m.division_id).filter(Boolean))];
+  const divIds = [...new Set(matches.map((m) => m.division_id).filter(Boolean))];
   let divNames = {};
   if (divIds.length > 0) {
     const { data: divs } = await supabase.from('divisions').select('id, name').in('id', divIds);
-    if (divs) divNames = Object.fromEntries(divs.map(d => [d.id, d.name]));
+    if (divs) divNames = Object.fromEntries(divs.map((d) => [d.id, d.name]));
   }
 
   for (const channelId of channelIds) {
@@ -142,15 +144,20 @@ async function enqueueUnscheduledAlerts(tournamentId, channelIds) {
       notification_type: 'unscheduled_alert',
       payload: {
         total_unscheduled: matches.length,
-        matches: matches.slice(0, 15).map(m => ({
-          team1: m.team1, team2: m.team2,
-          round: m.round, group: m.group, round_num: m.round_num,
+        matches: matches.slice(0, 15).map((m) => ({
+          team1: m.team1,
+          team2: m.team2,
+          round: m.round,
+          group: m.group,
+          round_num: m.round_num,
           division_name: divNames[m.division_id] || null,
         })),
       },
     });
   }
-  console.log(`[DailyReminders] Enqueued unscheduled alert for ${tournamentId} (${matches.length} matches)`);
+  console.log(
+    `[DailyReminders] Enqueued unscheduled alert for ${tournamentId} (${matches.length} matches)`
+  );
 }
 
 async function enqueueStalePendingAlerts(tournamentId, channelIds) {
@@ -178,7 +185,7 @@ async function enqueueStalePendingAlerts(tournamentId, channelIds) {
         alert_type: 'stale_pending',
         severity: 'warning',
         details: `${stale.length} submission(s) pending for 3+ days. Review them in QWICKY.`,
-        submissions: stale.slice(0, 10).map(s => ({
+        submissions: stale.slice(0, 10).map((s) => ({
           game_id: s.game_id,
           submitted_by: s.submitted_by_name,
           created_at: s.created_at,
@@ -186,7 +193,9 @@ async function enqueueStalePendingAlerts(tournamentId, channelIds) {
       },
     });
   }
-  console.log(`[DailyReminders] Enqueued stale pending alert for ${tournamentId} (${stale.length} submissions)`);
+  console.log(
+    `[DailyReminders] Enqueued stale pending alert for ${tournamentId} (${stale.length} submissions)`
+  );
 }
 
 async function cleanupOldNotifications() {

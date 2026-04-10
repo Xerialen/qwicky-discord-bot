@@ -5,14 +5,15 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('register')
     .setDescription('Link this channel to a QWICKY tournament')
-    .addStringOption(option =>
-      option.setName('tournament-id')
-        .setDescription('The QWICKY tournament ID')
-        .setRequired(true))
-    .addStringOption(option =>
-      option.setName('division-id')
+    .addStringOption((option) =>
+      option.setName('tournament-id').setDescription('The QWICKY tournament ID').setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('division-id')
         .setDescription('Optionally scope to a specific division')
-        .setRequired(false))
+        .setRequired(false)
+    )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 
   async execute(interaction) {

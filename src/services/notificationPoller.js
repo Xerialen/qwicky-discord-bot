@@ -8,12 +8,12 @@ const { handleDiscoverySummary } = require('./handlers/discoverySummary');
 
 // Handler registry — extend as new notification types are added
 const handlers = {
-  'edit_submission': handleEditSubmission,
-  'post_schedule': handlePostSchedule,
-  'game_day_reminder': handleGameDayReminder,
-  'unscheduled_alert': handleUnscheduledAlert,
-  'admin_alert': handleAdminAlert,
-  'discovery_summary': handleDiscoverySummary,
+  edit_submission: handleEditSubmission,
+  post_schedule: handlePostSchedule,
+  game_day_reminder: handleGameDayReminder,
+  unscheduled_alert: handleUnscheduledAlert,
+  admin_alert: handleAdminAlert,
+  discovery_summary: handleDiscoverySummary,
 };
 
 async function pollOnce(client) {
@@ -32,7 +32,10 @@ async function pollOnce(client) {
     const handler = handlers[notification.notification_type];
     if (!handler) {
       console.warn(`[NotificationPoller] Unknown type: ${notification.notification_type}`);
-      await failNotification(notification.id, `Unknown notification type: ${notification.notification_type}`);
+      await failNotification(
+        notification.id,
+        `Unknown notification type: ${notification.notification_type}`
+      );
       continue;
     }
 
@@ -40,7 +43,10 @@ async function pollOnce(client) {
       await handler(client, notification);
       await completeNotification(notification.id);
     } catch (err) {
-      console.error(`[NotificationPoller] Error handling ${notification.notification_type} (${notification.id}):`, err.message);
+      console.error(
+        `[NotificationPoller] Error handling ${notification.notification_type} (${notification.id}):`,
+        err.message
+      );
       await failNotification(notification.id, err.message);
     }
   }

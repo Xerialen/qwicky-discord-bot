@@ -40,8 +40,8 @@ async function generateWeeklyReport(tournamentId) {
 
   // Count by status
   const total = submissions.length;
-  const approved = submissions.filter(s => s.status === 'approved').length;
-  const pending = submissions.filter(s => s.status === 'pending').length;
+  const approved = submissions.filter((s) => s.status === 'approved').length;
+  const pending = submissions.filter((s) => s.status === 'pending').length;
 
   // Unique maps from game_data
   const maps = new Set();
@@ -67,11 +67,12 @@ async function generateWeeklyReport(tournamentId) {
       }
     }
   }
-  const topTeams = Object.entries(teamCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([name, count]) => `${name} (${count})`)
-    .join(', ') || 'N/A';
+  const topTeams =
+    Object.entries(teamCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([name, count]) => `${name} (${count})`)
+      .join(', ') || 'N/A';
 
   return {
     embed: {
@@ -83,7 +84,7 @@ async function generateWeeklyReport(tournamentId) {
         { name: 'Maps played', value: mapList, inline: false },
         { name: 'Most active teams', value: topTeams, inline: false },
       ],
-      color: 0xFFB300, // amber
+      color: 0xffb300, // amber
       footer: { text: `Report for ${startDate} – ${endDate}` },
     },
     hasActivity: true,

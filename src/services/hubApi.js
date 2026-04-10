@@ -18,8 +18,8 @@ async function fetchGameData(gameId) {
   const url = `${HUB_DB_URL}?id=eq.${gameId}&select=id,demo_sha256,mode`;
   const response = await fetch(url, {
     headers: {
-      'apikey': HUB_ANON_KEY,
-      'Authorization': `Bearer ${HUB_ANON_KEY}`,
+      apikey: HUB_ANON_KEY,
+      Authorization: `Bearer ${HUB_ANON_KEY}`,
     },
     signal: AbortSignal.timeout(10000),
   });
@@ -54,12 +54,16 @@ async function fetchGameData(gameId) {
   const ktxstats = await statsResponse.json();
 
   // 4. Insert into Turso (fire-and-forget)
-  const mode = game.mode === 'duel' ? '1on1'
-    : game.mode === '2on2tdm' ? '2on2'
-    : game.mode === '4on4tdm' ? '4on4'
-    : game.mode;
+  const mode =
+    game.mode === 'duel'
+      ? '1on1'
+      : game.mode === '2on2tdm'
+        ? '2on2'
+        : game.mode === '4on4tdm'
+          ? '4on4'
+          : game.mode;
 
-  insertGame({ hubId: game.id, sha256, mode, ktxstats }).catch(err => {
+  insertGame({ hubId: game.id, sha256, mode, ktxstats }).catch((err) => {
     console.error('[HubApi] Turso insert failed (non-blocking):', err.message);
   });
 
