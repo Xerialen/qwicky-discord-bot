@@ -1,6 +1,7 @@
 const { getGameByHubId, insertGame } = require('./tursoClient');
 
-const HUB_DB_URL = 'https://ncsphkjfominimxztjip.supabase.co/rest/v1/v1_games';
+const HUB_BASE_URL = process.env.HUB_SUPABASE_URL || 'https://ncsphkjfominimxztjip.supabase.co';
+const HUB_DB_URL = `${HUB_BASE_URL}/rest/v1/v1_games`;
 const HUB_ANON_KEY = process.env.HUB_ANON_KEY || process.env.HUB_SUPABASE_KEY;
 
 async function fetchGameData(gameId) {
