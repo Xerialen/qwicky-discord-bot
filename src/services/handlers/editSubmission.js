@@ -2,10 +2,10 @@ const { EmbedBuilder } = require('discord.js');
 const { getSubmissionById } = require('../supabase');
 
 const STATUS_COLORS = {
-  approved: 0x00C853,  // green
-  rejected: 0xFF3366,  // red
-  flagged:  0xFFD600,  // yellow
-  pending:  0xFFB300,  // amber/gold
+  approved: 0x00c853, // green
+  rejected: 0xff3366, // red
+  flagged: 0xffd600, // yellow
+  pending: 0xffb300, // amber/gold
 };
 
 const STATUS_LABELS = {
@@ -48,11 +48,11 @@ async function handleEditSubmission(client, notification) {
   const label = STATUS_LABELS[new_status] || new_status;
   const reviewerText = reviewer || 'admin';
 
-  const updatedEmbeds = message.embeds.map(existingEmbed => {
+  const updatedEmbeds = message.embeds.map((existingEmbed) => {
     const embed = EmbedBuilder.from(existingEmbed).setColor(color);
 
     // Remove any existing Status field and add the new one
-    const fields = (existingEmbed.fields || []).filter(f => f.name !== 'Status');
+    const fields = (existingEmbed.fields || []).filter((f) => f.name !== 'Status');
     fields.push({
       name: 'Status',
       value: `${new_status === 'approved' ? '\u2713' : '\u2717'} ${label} by ${reviewerText}`,

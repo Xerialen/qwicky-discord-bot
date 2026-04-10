@@ -6,13 +6,10 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('announce')
     .setDescription('Post a plain-text message to a channel')
-    .addStringOption(option =>
-      option
-        .setName('message')
-        .setDescription('The message to post')
-        .setRequired(true)
+    .addStringOption((option) =>
+      option.setName('message').setDescription('The message to post').setRequired(true)
     )
-    .addChannelOption(option =>
+    .addChannelOption((option) =>
       option
         .setName('channel')
         .setDescription('Target channel (defaults to #qwicky)')
