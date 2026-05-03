@@ -1,2 +1,10 @@
 node_modules/
 .env
+
+# Secrets — never commit (encrypted copies in gdrive:migration/win11-staging/qwicky-discord-bot-secrets.tar.gz.age)
+railway-token
+.env.claude-mcp
+.env.*
+
+# Test artifacts
+test-results/
