@@ -22,10 +22,12 @@ function stripColorCodes(name) {
 
 function normalizeHighBit(name) {
   if (typeof name !== 'string') return name;
-  return [...name].map(c => {
-    const code = c.charCodeAt(0);
-    return code < 256 ? QW_ASCII_TABLE[code] : c;
-  }).join('');
+  return [...name]
+    .map((c) => {
+      const code = c.charCodeAt(0);
+      return code < 256 ? QW_ASCII_TABLE[code] : c;
+    })
+    .join('');
 }
 
 function normalizeDiacritics(name) {
@@ -68,4 +70,11 @@ function normalize(rawName) {
   return name.toLowerCase().trim();
 }
 
-module.exports = { stripColorCodes, normalizeHighBit, normalizeDiacritics, stripDecorators, cleanName, normalize };
+module.exports = {
+  stripColorCodes,
+  normalizeHighBit,
+  normalizeDiacritics,
+  stripDecorators,
+  cleanName,
+  normalize,
+};

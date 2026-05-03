@@ -17,19 +17,16 @@ async function handlePostSchedule(client, notification) {
   if (round_num) parts.push(`Round ${round_num}`);
   if (group) parts.push(`Group ${group}`);
   const roundLabel = parts.join(' \u2014 ') || 'Schedule';
-  const title = division_name
-    ? `${roundLabel} \u2014 ${division_name}`
-    : roundLabel;
+  const title = division_name ? `${roundLabel} \u2014 ${division_name}` : roundLabel;
 
-  const embed = new EmbedBuilder()
-    .setColor(0xFFB300)
-    .setTitle(title);
+  const embed = new EmbedBuilder().setColor(0xffb300).setTitle(title);
 
   // Add each match as a field
-  const scheduled = matches.filter(m => m.status !== 'completed');
+  const scheduled = matches.filter((m) => m.status !== 'completed');
   const display = scheduled.length > 0 ? scheduled : matches;
 
-  for (const m of display.slice(0, 25)) { // Discord limits: 25 fields max
+  for (const m of display.slice(0, 25)) {
+    // Discord limits: 25 fields max
     const bestOf = m.bestOf ? `Bo${m.bestOf}` : '';
     const dateParts = [];
     if (m.date) dateParts.push(m.date);
@@ -54,7 +51,9 @@ async function handlePostSchedule(client, notification) {
   embed.setFooter({ text: footerParts.join(' \u2022 ') });
 
   await channel.send({ embeds: [embed] });
-  console.log(`[PostSchedule] Posted ${display.length} match(es) to channel ${notification.channel_id}`);
+  console.log(
+    `[PostSchedule] Posted ${display.length} match(es) to channel ${notification.channel_id}`
+  );
 }
 
 module.exports = { handlePostSchedule };

@@ -45,7 +45,7 @@ async function handleScheduleMessage(message) {
       (nameNorm.length >= 3 && msgLower.includes(nameNorm))
     ) {
       // Avoid duplicates
-      if (!found.some(f => f.name === team.name)) {
+      if (!found.some((f) => f.name === team.name)) {
         found.push(team);
       }
     }
@@ -66,9 +66,10 @@ async function handleScheduleMessage(message) {
   // Find a match involving both teams
   const t1 = found[0].name.toLowerCase();
   const t2 = found[1].name.toLowerCase();
-  const match = matches.find(m =>
-    (m.team1.toLowerCase() === t1 && m.team2.toLowerCase() === t2) ||
-    (m.team1.toLowerCase() === t2 && m.team2.toLowerCase() === t1)
+  const match = matches.find(
+    (m) =>
+      (m.team1.toLowerCase() === t1 && m.team2.toLowerCase() === t2) ||
+      (m.team1.toLowerCase() === t2 && m.team2.toLowerCase() === t1)
   );
 
   if (!match) return;
@@ -76,17 +77,27 @@ async function handleScheduleMessage(message) {
   // Build confirmation embed
   const timeStr = parsed.time ? ` at ${parsed.time} ${parsed.tzName}` : '';
   const embed = new EmbedBuilder()
-    .setColor(0x5865F2) // Discord blurple
+    .setColor(0x5865f2) // Discord blurple
     .setTitle('Schedule Match?')
     .setDescription(`**${match.team1}** vs **${match.team2}**`)
     .addFields(
       { name: 'Date', value: parsed.date + timeStr, inline: true },
-      { name: 'Round', value: match.group ? `Round ${match.round_num} — Group ${match.group}` : `Round ${match.round_num}`, inline: true },
+      {
+        name: 'Round',
+        value: match.group
+          ? `Round ${match.round_num} — Group ${match.group}`
+          : `Round ${match.round_num}`,
+        inline: true,
+      }
     )
     .setFooter({ text: `Requested by ${message.author.displayName || message.author.username}` });
 
   if (match.match_date) {
-    embed.addFields({ name: 'Current date', value: match.match_date + (match.match_time ? ` ${match.match_time}` : ''), inline: true });
+    embed.addFields({
+      name: 'Current date',
+      value: match.match_date + (match.match_time ? ` ${match.match_time}` : ''),
+      inline: true,
+    });
   }
 
   // Encode match ID + date into button custom IDs
@@ -99,7 +110,7 @@ async function handleScheduleMessage(message) {
     new ButtonBuilder()
       .setCustomId(`qwicky:cancel-schedule:${payload}`)
       .setLabel('Cancel')
-      .setStyle(ButtonStyle.Secondary),
+      .setStyle(ButtonStyle.Secondary)
   );
 
   await message.reply({ embeds: [embed], components: [row] });

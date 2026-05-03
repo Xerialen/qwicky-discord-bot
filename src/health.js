@@ -7,12 +7,14 @@ function startHealthServer(client, port = 3000) {
       const status = isReady ? 200 : 503;
 
       res.writeHead(status, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        status: isReady ? 'ok' : 'not_ready',
-        uptime: process.uptime(),
-        bot_ready: isReady,
-        timestamp: new Date().toISOString()
-      }));
+      res.end(
+        JSON.stringify({
+          status: isReady ? 'ok' : 'not_ready',
+          uptime: process.uptime(),
+          bot_ready: isReady,
+          timestamp: new Date().toISOString(),
+        })
+      );
     } else {
       res.writeHead(404);
       res.end();

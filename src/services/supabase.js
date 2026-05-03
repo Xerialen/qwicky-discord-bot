@@ -1,9 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 async function getChannelRegistration(channelId) {
   const { data, error } = await supabase
@@ -18,13 +15,16 @@ async function getChannelRegistration(channelId) {
 async function registerChannel({ guildId, channelId, tournamentId, divisionId, registeredBy }) {
   const { data, error } = await supabase
     .from('tournament_channels')
-    .upsert({
-      discord_guild_id: guildId,
-      discord_channel_id: channelId,
-      tournament_id: tournamentId,
-      division_id: divisionId || null,
-      registered_by: registeredBy,
-    }, { onConflict: 'discord_channel_id' })
+    .upsert(
+      {
+        discord_guild_id: guildId,
+        discord_channel_id: channelId,
+        tournament_id: tournamentId,
+        division_id: divisionId || null,
+        registered_by: registeredBy,
+      },
+      { onConflict: 'discord_channel_id' }
+    )
     .select()
     .single();
   if (error) throw error;
@@ -39,7 +39,16 @@ async function unregisterChannel(channelId) {
   if (error) throw error;
 }
 
-async function insertSubmission({ tournamentId, divisionId, hubUrl, gameId, gameData, discordUserId, discordUserName, channelId }) {
+async function insertSubmission({
+  tournamentId,
+  divisionId,
+  hubUrl,
+  gameId,
+  gameData,
+  discordUserId,
+  discordUserName,
+  channelId,
+}) {
   const { data, error } = await supabase
     .from('match_submissions')
     .insert({
@@ -71,7 +80,8 @@ async function updateSubmissionMessageId(submissionId, messageId) {
     .from('match_submissions')
     .update({ discord_message_id: messageId })
     .eq('id', submissionId);
-  if (error) console.error(`[Supabase] Failed to store message ID for ${submissionId}:`, error.message);
+  if (error)
+    console.error(`[Supabase] Failed to store message ID for ${submissionId}:`, error.message);
 }
 
 async function getSubmissionById(submissionId) {
@@ -103,7 +113,8 @@ async function failNotification(id, errorMsg) {
     .from('discord_notifications')
     .update({ status: 'failed', error: errorMsg })
     .eq('id', id);
-  if (error) console.error(`[Supabase] Failed to mark notification ${id} as failed:`, error.message);
+  if (error)
+    console.error(`[Supabase] Failed to mark notification ${id} as failed:`, error.message);
 }
 
 module.exports = {

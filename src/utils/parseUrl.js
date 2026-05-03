@@ -4,7 +4,8 @@
 //   /qtv/{id}
 //   /games/?gameId={id}
 //   /games?gameId={id}
-const HUB_URL_PATTERN = /hub\.quakeworld\.nu\/(?:(?:game|qtv)\/(\d+)|games\/?\?[^\s]*?gameId=(\d+))/g;
+const HUB_URL_PATTERN =
+  /hub\.quakeworld\.nu\/(?:(?:game|qtv)\/(\d+)|games\/?\?[^\s]*?gameId=(\d+))/g;
 
 function extractUrls(text) {
   const urls = [];
